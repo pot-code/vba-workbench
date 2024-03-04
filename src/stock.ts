@@ -16,7 +16,7 @@ function GetColumnRangeValues(sheetName: string, startCell: string) {
   const start = ws.Range(startCell);
   const end = start.End(xlDown);
 
-  if (end.Row === MAX_ROW) return [[ws.Range(startCell).Value()]];
+  if (end.Row === MAX_ROW) return [];
   return ws.Range(start, end).Value();
 }
 
