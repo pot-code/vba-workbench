@@ -16,8 +16,10 @@ function GetColumnRangeValues(sheetName: string, startCell: string) {
   const start = ws.Range(startCell);
   const end = start.End(xlDown);
 
-  if (end.Row === MAX_ROW) return [];
-  return ws.Range(start, end).Value();
+  if (end.Row !== MAX_ROW) return ws.Range(start, end).Value();
+
+  const cellValue = start.Value();
+  return cellValue ? [[cellValue]] : [];
 }
 
 function GetColumnEndingRowNumber(sheetName: string, startCell: string) {
@@ -29,9 +31,9 @@ function GetColumnEndingRowNumber(sheetName: string, startCell: string) {
   return row;
 }
 
-function GetSumOfProductTillNow(sheetName: string) {
-  const keyRange = GetColumnRangeValues(sheetName, 'B5') as RowValue[];
-  const numberRange = GetColumnRangeValues(sheetName, 'F5') as RowValue[];
+function GetAccumulatedStock(sheetName: string, nameCell: string, valueCell: string) {
+  const keyRange = GetColumnRangeValues(sheetName, nameCell) as RowValue[];
+  const numberRange = GetColumnRangeValues(sheetName, valueCell) as RowValue[];
   const resultValues = [];
 
   const countMap = new Map<string, number>();
@@ -46,6 +48,33 @@ function GetSumOfProductTillNow(sheetName: string) {
     resultValues.push([countMap.get(key)]);
   }
 
+  return resultValues;
+}
+
+function LookUpStockName(
+  registrySheetName: string,
+  numberCellStart: string,
+  nameCellStart: string,
+  matchingSheetName: string,
+  matchingCellStart: string
+) {
+  const numberRange = GetColumnRangeValues(registrySheetName, numberCellStart) as RowValue[];
+  const nameRange = GetColumnRangeValues(registrySheetName, nameCellStart) as RowValue[];
+  const stockMap = new Map<string, string>();
+
+  for (let i = 0; i < numberRange.length; i++) {
+    const itemNumber = numberRange[i][0] as string;
+    const itemName = nameRange[i][0] as string;
+    stockMap.set(itemNumber, itemName);
+  }
+
+  const matchingRange = GetColumnRangeValues(matchingSheetName, matchingCellStart) as RowValue[];
+  const resultValues = [];
+  for (let i = 0; i < matchingRange.length; i++) {
+    const matching = matchingRange[i][0] as string;
+    const name = stockMap.get(matching) || '无匹配项';
+    resultValues.push([name]);
+  }
   return resultValues;
 }
 
